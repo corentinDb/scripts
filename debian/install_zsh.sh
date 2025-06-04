@@ -5,7 +5,7 @@ sudo apt update
 sudo apt install -y zsh
 
 # Install oh-my-zsh
-sh -c "\$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)"
+sh -c "$(wget -qO- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
 # Change oh-my-zsh theme to candy
 sed -i 's/^ZSH_THEME=.*/ZSH_THEME="candy"/' ~/.zshrc
