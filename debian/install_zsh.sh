@@ -16,6 +16,9 @@ sed -i '2s/^#\s*//' ~/.zshrc
 # Add alias ll='ls -lahF' to .zshrc
 echo "alias ll='ls -lahF'" >> ~/.zshrc
 
+# change default terminal
+chsh -s $(which zsh)
+
 # Reload zsh configuration
 source ~/.zshrc
 
