@@ -23,4 +23,5 @@ zsh
 source ~/.zshrc
 
 echo "Post-installation script completed successfully!"
-echo "run 'chsh -s $(which zsh)' to change the default shell"
+echo "Please run the following command to change the default shell and switch to zsh"
+echo "chsh -s $(which zsh) && zsh"
