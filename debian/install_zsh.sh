@@ -17,10 +17,10 @@ sed -i '2s/^#\s*//' ~/.zshrc
 echo "alias ll='ls -lahF'" >> ~/.zshrc
 
 # change default terminal
-chsh -s $(which zsh)
 zsh
 
 # Reload zsh configuration
 source ~/.zshrc
 
 echo "Post-installation script completed successfully!"
+echo "run 'chsh -s $(which zsh)' to change the default shell"
