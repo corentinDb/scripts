@@ -6,7 +6,9 @@ $directory = __DIR__;
 $command = 'git pull';
 
 // Exécuter la commande
-$output = shell_exec("cd $directory && $command 2>&1");
+shell_exec("cd $directory");
+$status = shell_exec("git status");
+$output = shell_exec("$command 2>&1");
 
 // Afficher la sortie
 echo "
@@ -17,6 +19,12 @@ echo "
     <meta http-equiv=\"refresh\" content=\"10;url=./\">
 </head>
 <body>
+    <h4>Status</h4>
+    <br>
+    <pre>$status</pre>
+    <br>
+    <h4>Pull</h4>
+    <br>
     <pre>$output</pre>
     <button onclick=\"window.location.href='/scripts/'\">Retour aux Scripts</button>
 </body>
