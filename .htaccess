@@ -1,0 +1,3 @@
+AddType text/plain sh
+Options +Indexes
+RedirectMatch 404 /scripts/.git/
