@@ -132,42 +132,18 @@ success "Zsh $ZSH_VERSION installé"
 
 header "Paquets optionnels"
 
-echo "Les paquets optionnels suivants sont recommandés :"
-echo ""
-for i in "${!OPTIONAL_PACKAGES[@]}"; do
-    item="${OPTIONAL_PACKAGES[$i]}"
-    pkg="${item%%:*}"
-    desc="${item#*:}"
-    printf "  %d. %-15s - %s\n" "$((i+1))" "$pkg" "$desc"
-done
-echo ""
-
-read -p "Voulez-vous installer les paquets optionnels ? [Y/n] " -r INSTALL_OPTIONAL
-INSTALL_OPTIONAL="${INSTALL_OPTIONAL:-y}"
-
-# Valider la réponse
-while [[ ! $INSTALL_OPTIONAL =~ ^[YyNn]$ ]]; do
-    warn "Veuillez entrer 'y' ou 'n'"
-    read -p "Voulez-vous installer les paquets optionnels ? [Y/n] " -r INSTALL_OPTIONAL
-    INSTALL_OPTIONAL="${INSTALL_OPTIONAL:-y}"
+info "Installation des paquets optionnels..."
+# Extraire les noms de paquets (partie avant le ':')
+OPTIONAL_NAMES=()
+for item in "${OPTIONAL_PACKAGES[@]}"; do
+    OPTIONAL_NAMES+=("${item%%:*}")
 done
 
-if [[ $INSTALL_OPTIONAL =~ ^[Yy]$ ]]; then
-    info "Installation des paquets optionnels..."
-    # Extraire les noms de paquets (partie avant le ':')
-    OPTIONAL_NAMES=()
-    for item in "${OPTIONAL_PACKAGES[@]}"; do
-        OPTIONAL_NAMES+=("${item%%:*}")
-    done
-
-    OPTIONAL_STRING=$(printf "%s " "${OPTIONAL_NAMES[@]}")
-    if sudo apt install -y $OPTIONAL_STRING 2>&1; then
-        success "Paquets optionnels installés avec succès"
-    else
-        warn "Certains paquets optionnels n'ont pas pu être installés"
-    fi
+OPTIONAL_STRING=$(printf "%s " "${OPTIONAL_NAMES[@]}")
+if sudo apt install -y $OPTIONAL_STRING 2>&1; then
+    success "Paquets optionnels installés avec succès"
 else
-    info "Installation des paquets optionnels ignorée"
+    warn "Certains paquets optionnels n'ont pas pu être installés"
 fi
 
 # =============================================================================
