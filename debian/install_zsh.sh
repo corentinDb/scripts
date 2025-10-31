@@ -41,6 +41,24 @@ ZSH_PLUGINS=(
     common-aliases               # Aliases courants pour commandes fréquentes
 )
 
+# Paquets obligatoires
+REQUIRED_PACKAGES=(
+    zsh                          # Shell interactif
+    curl                         # Outil de transfert de données
+    git                          # Système de gestion de versions
+)
+
+# Paquets optionnels: format "paquet:description"
+# Structure unique pour faciliter la maintenance
+declare -a OPTIONAL_PACKAGES=(
+    "btop:Moniteur de processus interactif"
+    "tree:Affiche la structure des répertoires"
+    "vim:Éditeur de texte avancé"
+    "jq:Processeur JSON en ligne de commande"
+    "bat:Cat amélioré avec coloration syntaxique"
+    "fzf:Chercheur flou interactif"
+)
+
 # =============================================================================
 # FONCTIONS
 # =============================================================================
@@ -100,12 +118,57 @@ header "Installation des paquets système"
 info "Mise à jour de la liste des paquets..."
 sudo apt update || error_exit "La mise à jour des paquets a échoué"
 
-info "Installation de zsh, curl et git..."
-sudo apt install -y zsh curl git || error_exit "L'installation des paquets a échoué"
+info "Installation des paquets obligatoires..."
+REQUIRED_STRING=$(printf "%s " "${REQUIRED_PACKAGES[@]}")
+sudo apt install -y $REQUIRED_STRING || error_exit "L'installation des paquets obligatoires a échoué"
 
 # Vérification des versions installées
 ZSH_VERSION=$(zsh --version | cut -d' ' -f2)
 success "Zsh $ZSH_VERSION installé"
+
+# =============================================================================
+# PAQUETS OPTIONNELS
+# =============================================================================
+
+header "Paquets optionnels"
+
+echo "Les paquets optionnels suivants sont recommandés :"
+echo ""
+for i in "${!OPTIONAL_PACKAGES[@]}"; do
+    item="${OPTIONAL_PACKAGES[$i]}"
+    pkg="${item%%:*}"
+    desc="${item#*:}"
+    printf "  %d. %-15s - %s\n" "$((i+1))" "$pkg" "$desc"
+done
+echo ""
+
+read -p "Voulez-vous installer les paquets optionnels ? [Y/n] " -r INSTALL_OPTIONAL
+INSTALL_OPTIONAL="${INSTALL_OPTIONAL:-y}"
+
+# Valider la réponse
+while [[ ! $INSTALL_OPTIONAL =~ ^[YyNn]$ ]]; do
+    warn "Veuillez entrer 'y' ou 'n'"
+    read -p "Voulez-vous installer les paquets optionnels ? [Y/n] " -r INSTALL_OPTIONAL
+    INSTALL_OPTIONAL="${INSTALL_OPTIONAL:-y}"
+done
+
+if [[ $INSTALL_OPTIONAL =~ ^[Yy]$ ]]; then
+    info "Installation des paquets optionnels..."
+    # Extraire les noms de paquets (partie avant le ':')
+    OPTIONAL_NAMES=()
+    for item in "${OPTIONAL_PACKAGES[@]}"; do
+        OPTIONAL_NAMES+=("${item%%:*}")
+    done
+
+    OPTIONAL_STRING=$(printf "%s " "${OPTIONAL_NAMES[@]}")
+    if sudo apt install -y $OPTIONAL_STRING 2>&1; then
+        success "Paquets optionnels installés avec succès"
+    else
+        warn "Certains paquets optionnels n'ont pas pu être installés"
+    fi
+else
+    info "Installation des paquets optionnels ignorée"
+fi
 
 # =============================================================================
 # INSTALLATION DE OH-MY-ZSH
