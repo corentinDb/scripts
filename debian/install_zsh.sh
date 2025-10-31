@@ -159,8 +159,8 @@ info "Configuration des plugins: ${ZSH_PLUGINS[*]}"
 PLUGINS_STRING=$(printf "%s " "${ZSH_PLUGINS[@]}")
 sed -i "s/^plugins=.*/plugins=($PLUGINS_STRING)/" "$HOME/.zshrc" || error_exit "Échec de la configuration des plugins"
 
-# Décommenter la ligne export PATH si elle existe
-info "Configuration de la variable PATH..."
+# Décommenter la ligne export PATH de bash
+info "Configuration du PATH bash..."
 sed -i '2s/^#\s*//' "$HOME/.zshrc" 2>/dev/null || true
 
 success "Configuration de base appliquée"
