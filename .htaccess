@@ -1,9 +1,8 @@
 AddType text/plain sh
-AddHandler cgi-script .cgi
-Options +Indexes +ExecCGI
+Options +Indexes
 RedirectMatch 404 /scripts/.git/
 
 # Serve plain text list for CLI tools, standard Apache listing for browsers
 RewriteEngine On
 RewriteCond %{HTTP_USER_AGENT} (curl|Wget|wget|HTTPie|aria2|lynx|links|w3m|python-requests|node-fetch|urllib|perl|java|powershell|pwsh|fetch|axel|lftp) [NC]
-RewriteRule ^$ cli-list.cgi [L]
+RewriteRule ^$ cli-list.php [L]
