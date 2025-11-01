@@ -62,6 +62,11 @@ REQUIRED_PACKAGES=(
     git                          # Système de gestion de versions
 )
 
+# Paquets Homebrew à installer
+BREW_PACKAGES=(
+    "fzf"                        # Chercheur flou interactif
+)
+
 # Paquets optionnels: format "paquet:description"
 # Structure unique pour faciliter la maintenance
 declare -a OPTIONAL_PACKAGES=(
@@ -70,7 +75,6 @@ declare -a OPTIONAL_PACKAGES=(
     "vim:Éditeur de texte avancé"
     "jq:Processeur JSON en ligne de commande"
     "bat:Cat amélioré avec coloration syntaxique"
-    "fzf:Chercheur flou interactif"
 )
 
 # =============================================================================
@@ -172,25 +176,61 @@ else
 fi
 
 # =============================================================================
-# CONFIGURATION DE FZF
+# INSTALLATION DE HOMEBREW
 # =============================================================================
 
-header "Configuration de fzf"
+header "Installation de Homebrew"
 
-# Vérifier si fzf est installé
-if command -v fzf &> /dev/null; then
-    info "fzf détecté, installation de fzf-preview.sh..."
-
-    # Télécharger fzf-preview.sh
-    if sudo wget -q -O /usr/bin/fzf-preview.sh https://raw.githubusercontent.com/junegunn/fzf/refs/heads/master/bin/fzf-preview.sh; then
-        # Rendre le fichier exécutable pour tout le monde
-        sudo chmod +x /usr/bin/fzf-preview.sh || error_exit "Impossible de rendre fzf-preview.sh exécutable"
-        success "fzf-preview.sh installé et configuré"
+# Vérifier si l'utilisateur linuxbrew existe, sinon le créer
+info "Vérification de l'utilisateur linuxbrew..."
+if ! id linuxbrew &>/dev/null; then
+    info "Création de l'utilisateur linuxbrew..."
+    if sudo useradd --create-home linuxbrew --no-user-group; then
+        success "Utilisateur linuxbrew créé"
     else
-        warn "Impossible de télécharger fzf-preview.sh depuis GitHub"
+        warn "Impossible de créer l'utilisateur linuxbrew"
     fi
 else
-    info "fzf n'est pas installé, configuration de fzf ignorée"
+    success "L'utilisateur linuxbrew existe déjà"
+fi
+
+# Vérifier si brew est déjà installé
+if sudo -H -i -u linuxbrew command -v brew &> /dev/null; then
+    BREW_VERSION=$(sudo -H -i -u linuxbrew brew --version | head -1)
+    success "Homebrew est déjà installé: $BREW_VERSION"
+else
+    info "Homebrew n'est pas installé, installation en cours..."
+    if sudo -H -i -u linuxbrew /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
+        success "Homebrew installé avec succès"
+
+        # Rendre le répertoire linuxbrew exécutable pour tout le monde
+        info "Configuration des permissions..."
+        sudo chmod -R a+x /home/linuxbrew || warn "Impossible de configurer les permissions"
+    else
+        warn "Impossible d'installer Homebrew"
+    fi
+fi
+
+# =============================================================================
+# INSTALLATION DES PACKAGES HOMEBREW
+# =============================================================================
+
+header "Installation des packages Homebrew"
+
+info "Installation des packages Homebrew: ${BREW_PACKAGES[*]}"
+if sudo -H -i -u linuxbrew command -v brew &> /dev/null; then
+    for package in "${BREW_PACKAGES[@]}"; do
+        info "Installation de $package..."
+        if sudo -H -i -u linuxbrew brew install "$package" 2>&1 | grep -q "already installed"; then
+            success "$package est déjà installé"
+        elif sudo -H -i -u linuxbrew brew install "$package"; then
+            success "$package installé avec succès"
+        else
+            warn "Impossible d'installer $package"
+        fi
+    done
+else
+    warn "Homebrew n'est pas disponible, installation des packages Homebrew ignorée"
 fi
 
 # =============================================================================
