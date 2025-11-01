@@ -13,6 +13,11 @@ $requestPath = $_GET['path'] ?? '';
 // Clean the path - remove trailing slashes and normalize
 $requestPath = trim($requestPath, '/');
 
+// Special case: if path is empty or only contains cli-list.php, treat as root
+if (empty($requestPath) || $requestPath === 'cli-list.php') {
+    $requestPath = '';
+}
+
 // Construct the full path
 $fullPath = $basePath;
 if ($requestPath) {

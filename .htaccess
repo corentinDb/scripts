@@ -1,8 +1,11 @@
 AddType text/plain sh
 Options +Indexes
+IndexIgnore cli-list.php
 RedirectMatch 404 /scripts/.git/
 
 # Serve plain text list for CLI tools, standard Apache listing for browsers
 RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{HTTP_USER_AGENT} (curl|Wget|wget|HTTPie|aria2|lynx|links|w3m|python-requests|node-fetch|urllib|perl|java|powershell|pwsh|fetch|axel|lftp) [NC]
-RewriteRule ^(.*)$ cli-list.php?path=$1 [L]
+RewriteRule ^(.*)$ cli-list.php?path=$1 [L,QSA]
