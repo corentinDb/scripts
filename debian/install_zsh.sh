@@ -207,6 +207,11 @@ else
         info "Configuration des permissions..."
         sudo chmod -R a+x /home/linuxbrew || warn "Impossible de configurer les permissions"
 
+        # Configuration de brew shellenv pour linuxbrew
+        info "Configuration de Homebrew pour l'utilisateur linuxbrew..."
+        echo >> /home/linuxbrew/.profile
+        echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/linuxbrew/.profile
+
         # Configuration de brew shellenv dans .zshrc
         if [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
             info "Configuration de Homebrew dans .zshrc..."
