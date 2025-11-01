@@ -185,7 +185,7 @@ header "Installation de Homebrew"
 info "Vérification de l'utilisateur linuxbrew..."
 if ! id linuxbrew &>/dev/null; then
     info "Création de l'utilisateur linuxbrew..."
-    if sudo useradd --create-home linuxbrew --no-user-group; then
+    if sudo useradd --create-home linuxbrew; then
         success "Utilisateur linuxbrew créé"
     else
         warn "Impossible de créer l'utilisateur linuxbrew"
@@ -212,22 +212,31 @@ else
         sudo bash -c "echo >> /home/linuxbrew/.profile"
         sudo bash -c "echo 'eval \"\$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\"' >> /home/linuxbrew/.profile"
 
-        # Configuration de brew shellenv dans .zshrc
-        if [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
-            info "Configuration de Homebrew dans .zshrc..."
-            if ! grep -q 'linuxbrew' "$HOME/.zshrc"; then
-                echo '' >> "$HOME/.zshrc"
-                echo '# Homebrew' >> "$HOME/.zshrc"
-                echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> "$HOME/.zshrc"
-                eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-                success "Configuration Homebrew ajoutée à .zshrc"
-            else
-                success "Configuration Homebrew déjà présente dans .zshrc"
-            fi
-        fi
     else
         warn "Impossible d'installer Homebrew"
     fi
+fi
+
+# Configuration de Homebrew dans .zshrc pour tous les cas (déjà installé ou nouvellement installé)
+if [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+    info "Configuration de Homebrew dans .zshrc..."
+    # Créer le bloc Homebrew avec headers
+    {
+        echo "# BEGIN INSTALL_ZSH_SCRIPT_HOMEBREW"
+        echo ""
+        echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
+        echo ""
+        echo "# END INSTALL_ZSH_SCRIPT_HOMEBREW"
+    } > /tmp/homebrew_config.txt
+
+    # Supprimer l'ancien bloc s'il existe (éviter les doublons)
+    sed -i '/# BEGIN INSTALL_ZSH_SCRIPT_HOMEBREW/,/# END INSTALL_ZSH_SCRIPT_HOMEBREW/d' "$HOME/.zshrc" 2>/dev/null || true
+
+    # Insérer le bloc avant la ligne source $ZSH/oh-my-zsh.sh
+    awk '/source \$ZSH\/oh-my-zsh.sh/ {system("cat /tmp/homebrew_config.txt"); print; next} {print}' "$HOME/.zshrc" > /tmp/.zshrc.tmp && mv /tmp/.zshrc.tmp "$HOME/.zshrc" && rm /tmp/homebrew_config.txt || error_exit "Échec de l'ajout de la configuration Homebrew"
+
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    success "Configuration Homebrew ajoutée à .zshrc"
 fi
 
 # =============================================================================
