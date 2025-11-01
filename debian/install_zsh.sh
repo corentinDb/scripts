@@ -200,12 +200,25 @@ if sudo -H -i -u linuxbrew command -v brew &> /dev/null; then
     success "Homebrew est déjà installé: $BREW_VERSION"
 else
     info "Homebrew n'est pas installé, installation en cours..."
-    if sudo -H -i -u linuxbrew /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; then
+    if curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh | sudo -H -u linuxbrew NONINTERACTIVE=1 bash; then
         success "Homebrew installé avec succès"
 
         # Rendre le répertoire linuxbrew exécutable pour tout le monde
         info "Configuration des permissions..."
         sudo chmod -R a+x /home/linuxbrew || warn "Impossible de configurer les permissions"
+
+        # Configuration de brew shellenv dans .zshrc
+        if [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+            info "Configuration de Homebrew dans .zshrc..."
+            if ! grep -q 'linuxbrew' "$HOME/.zshrc"; then
+                echo '' >> "$HOME/.zshrc"
+                echo '# Homebrew' >> "$HOME/.zshrc"
+                echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> "$HOME/.zshrc"
+                success "Configuration Homebrew ajoutée à .zshrc"
+            else
+                success "Configuration Homebrew déjà présente dans .zshrc"
+            fi
+        fi
     else
         warn "Impossible d'installer Homebrew"
     fi
