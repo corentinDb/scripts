@@ -209,8 +209,8 @@ else
 
         # Configuration de brew shellenv pour linuxbrew
         info "Configuration de Homebrew pour l'utilisateur linuxbrew..."
-        echo >> /home/linuxbrew/.profile
-        echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/linuxbrew/.profile
+        sudo echo >> /home/linuxbrew/.profile
+        sudo echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/linuxbrew/.profile
 
         # Configuration de brew shellenv dans .zshrc
         if [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
