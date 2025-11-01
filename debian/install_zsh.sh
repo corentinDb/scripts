@@ -219,6 +219,7 @@ else
                 echo '' >> "$HOME/.zshrc"
                 echo '# Homebrew' >> "$HOME/.zshrc"
                 echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> "$HOME/.zshrc"
+                eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
                 success "Configuration Homebrew ajoutée à .zshrc"
             else
                 success "Configuration Homebrew déjà présente dans .zshrc"
