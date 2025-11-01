@@ -29,7 +29,6 @@ ZSH_THEME="candy"
 
 # Plugins oh-my-zsh
 ZSH_PLUGINS=(
-    git                          # Aliases et complétion git
     sudo                         # Appuyer 2x ESC pour ajouter sudo
     command-not-found            # Suggère le paquet à installer
     colored-man-pages            # Pages man colorées
@@ -38,7 +37,22 @@ ZSH_PLUGINS=(
     docker                       # Aliases et complétion Docker
     docker-compose               # Aliases et complétion docker-compose
     ssh                          # Gestion SSH (host completion, ssh-add helpers)
-    common-aliases               # Aliases courants pour commandes fréquentes
+    fzf
+)
+
+# Variables d'environnement à exporter avant oh-my-zsh
+declare -A ENV_VARS=(
+    [EDITOR]="vim"               # Éditeur par défaut
+    [VISUAL]="vim"               # Éditeur visuel
+    [PAGER]="less"               # Pager par défaut
+    [HISTSIZE]="10000"           # Taille de l'historique
+    [SAVEHIST]="10000"           # Nombre d'entrées sauvegardées
+    [ZSH_COMPDUMP]="\$ZSH/cache/.zcompdump-\$HOST" # Fichier zcompdump
+    [LESS]="-R -M -i"            # Configuration de less: -R : Affiche les couleurs ANSI (pour man coloré, git diff, etc.) | -M : Prompt détaillé (ligne X de Y, pourcentage) | -i : Recherche insensible à la casse (sauf si maj présente)
+    [HIST_STAMPS]="yyyy-mm-dd"   # Format des timestamps de l'historique
+    [LANG]="fr_FR.UTF-8"         # Locale par défaut
+    [LANGUAGE]="fr_FR.UTF-8"     # Langue préférée
+    [LC_ALL]="fr_FR.UTF-8"       # Locale pour toutes les catégories (écrase les LC_*)
 )
 
 # Paquets obligatoires
@@ -105,6 +119,17 @@ if ! command -v sudo &> /dev/null; then
     error_exit "sudo n'est pas installé. Installez-le d'abord : apt install sudo"
 fi
 
+# Vérifier et générer les locales si nécessaire
+info "Vérification des locales..."
+if ! locale -a | grep -q "fr_FR.utf8"; then
+    warn "La locale fr_FR.UTF-8 n'est pas générée"
+    info "Génération de la locale fr_FR.UTF-8..."
+    sudo locale-gen fr_FR.UTF-8 2>/dev/null || warn "Impossible de générer la locale fr_FR.UTF-8"
+    sudo update-locale LANG=fr_FR.UTF-8 2>/dev/null || warn "Impossible de mettre à jour LANG"
+else
+    success "Locale fr_FR.UTF-8 générée"
+fi
+
 info "Utilisateur: $USER"
 info "Système: $(lsb_release -ds 2>/dev/null || cat /etc/os-release | grep PRETTY_NAME | cut -d'"' -f2)"
 success "Vérifications OK"
@@ -144,6 +169,28 @@ if sudo apt install -y $OPTIONAL_STRING 2>&1; then
     success "Paquets optionnels installés avec succès"
 else
     warn "Certains paquets optionnels n'ont pas pu être installés"
+fi
+
+# =============================================================================
+# CONFIGURATION DE FZF
+# =============================================================================
+
+header "Configuration de fzf"
+
+# Vérifier si fzf est installé
+if command -v fzf &> /dev/null; then
+    info "fzf détecté, installation de fzf-preview.sh..."
+
+    # Télécharger fzf-preview.sh
+    if sudo wget -q -O /usr/bin/fzf-preview.sh https://raw.githubusercontent.com/junegunn/fzf/refs/heads/master/bin/fzf-preview.sh; then
+        # Rendre le fichier exécutable pour tout le monde
+        sudo chmod +x /usr/bin/fzf-preview.sh || error_exit "Impossible de rendre fzf-preview.sh exécutable"
+        success "fzf-preview.sh installé et configuré"
+    else
+        warn "Impossible de télécharger fzf-preview.sh depuis GitHub"
+    fi
+else
+    info "fzf n'est pas installé, configuration de fzf ignorée"
 fi
 
 # =============================================================================
@@ -202,6 +249,29 @@ sed -i "s/^plugins=.*/plugins=($PLUGINS_STRING)/" "$HOME/.zshrc" || error_exit "
 info "Configuration du PATH bash..."
 sed -i '2s/^#\s*//' "$HOME/.zshrc" 2>/dev/null || true
 
+# Configuration des variables d'environnement avant oh-my-zsh
+info "Ajout des variables d'environnement..."
+{
+    echo "# BEGIN INSTALL_ZSH_SCRIPT_ENV_VARS"
+    echo "# ============================================================================="
+    echo "# VARIABLES D'ENVIRONNEMENT (à exporter avant oh-my-zsh)"
+    echo "# ============================================================================="
+    echo ""
+
+    # Exporter chaque variable d'environnement
+    for key in "${!ENV_VARS[@]}"; do
+        echo "export $key=\"${ENV_VARS[$key]}\""
+    done
+    echo ""
+    echo "# END INSTALL_ZSH_SCRIPT_ENV_VARS"
+} > /tmp/env_vars.txt
+
+# Supprimer le bloc ancien s'il existe (éviter les doublons)
+sed -i '/# BEGIN INSTALL_ZSH_SCRIPT_ENV_VARS/,/# END INSTALL_ZSH_SCRIPT_ENV_VARS/d' "$HOME/.zshrc" 2>/dev/null || true
+
+# Insérer le bloc avant la ligne source $ZSH/oh-my-zsh.sh
+awk '/source \$ZSH\/oh-my-zsh.sh/ {system("cat /tmp/env_vars.txt"); print; next} {print}' "$HOME/.zshrc" > /tmp/.zshrc.tmp && mv /tmp/.zshrc.tmp "$HOME/.zshrc" && rm /tmp/env_vars.txt || error_exit "Échec de l'ajout des variables d'environnement"
+
 success "Configuration de base appliquée"
 
 # =============================================================================
@@ -215,9 +285,12 @@ info "Ajout des options setopt, aliases et configurations personnalisées..."
 # Créer un backup avant modification
 cp "$HOME/.zshrc" "$HOME/.zshrc.pre-custom.$(date +%Y%m%d-%H%M%S)"
 
+# Supprimer l'ancien bloc s'il existe (éviter les doublons)
+sed -i '/# BEGIN INSTALL_ZSH_SCRIPT_CUSTOM_CONFIG/,/# END INSTALL_ZSH_SCRIPT_CUSTOM_CONFIG/d' "$HOME/.zshrc" 2>/dev/null || true
+
 # Ajouter les personnalisations à la fin du fichier
 cat >> "$HOME/.zshrc" << 'EOF'
-
+# BEGIN INSTALL_ZSH_SCRIPT_CUSTOM_CONFIG
 # =============================================================================
 # PERSONNALISATIONS PERSONNELLES
 # =============================================================================
@@ -240,45 +313,40 @@ setopt NO_CLOBBER                # Empêche l'écrasement avec > (utiliser >| po
 
 # ===== Aliases ls =====
 alias ls='ls --color=tty'
-alias ll='ls -alhF'
 alias l='ls -lhF'
-alias la='ls -aF'
+alias lt='l -tr'
+alias ld='l -d .*'
+alias ll='l -a'
+alias llt='ll -tr'
+
+# ===== Aliases recherche =====
+alias grep='grep --color'
+alias sgrep='grep -R -n -H -C 5 --exclude-dir={.bzr,CVS,.git,.hg,.svn,.idea,.tox,.venv,venv} '
+(( $+commands[fd] )) || alias fd='find . -type d -name'
+alias ff='find . -type f -name'
+
+# ===== Aliases adminsys =====
+alias dud='du -d 1 -h'
+(( $+commands[duf] )) || alias duf='du -sh *'
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
 
 # ===== Aliases utiles =====
 alias df='df -h'                                 # Espace disque lisible
 alias free='free -h'                             # Mémoire lisible
 alias mkdir='mkdir -pv'                          # Créer dossiers parents
 alias wget='wget -c'                             # Continuer téléchargements
-alias histg='history | grep'                     # Recherche dans historique
+alias h='history'                                # Raccourcis
+alias hgrep="fc -El 0 | grep"                    # Recherche dans historique
 
 # ===== Fonctions utiles =====
-
-psgrep() {
-    ps aux | grep -v grep | grep -i -e VSZ -e "$@"
-}
-
 # Backup rapide d'un fichier
 backup() {
     cp "$1"{,.backup-$(date +%Y%m%d-%H%M%S)}
 }
 
-# ===== Variables d'environnement =====
-export EDITOR='vim'                              # Éditeur par défaut
-export VISUAL='vim'
-export PAGER='less'
-
-# Configuration de less pour une meilleure expérience
-export LESS='-R -M -i'
-# -R : Affiche les couleurs ANSI (pour man coloré, git diff, etc.)
-# -M : Prompt détaillé (ligne X de Y, pourcentage)
-# -i : Recherche insensible à la casse (sauf si maj présente)
-
-# ===== Format de l'historique =====
-export HIST_STAMPS="yyyy-mm-dd"                     # Format des timestamps (histoire)
-
-# ===== Prompt personnalisé (optionnel) =====
-# PROMPT='%F{green}%n@%m%f:%F{blue}%~%f$ '
-
+# END INSTALL_ZSH_SCRIPT_CUSTOM_CONFIG
 EOF
 
 success "Personnalisations ajoutées"
