@@ -38,6 +38,7 @@ ZSH_PLUGINS=(
     docker-compose               # Aliases et complétion docker-compose
     ssh                          # Gestion SSH (host completion, ssh-add helpers)
     fzf
+    nvm
 )
 
 # Variables d'environnement à exporter avant oh-my-zsh
