@@ -69,7 +69,6 @@ REQUIRED_PACKAGES=(
     zsh                          # Shell interactif
     curl                         # Outil de transfert de données
     git                          # Système de gestion de versions
-    locales
 )
 
 # Paquets Homebrew à installer
@@ -133,15 +132,21 @@ if ! command -v sudo &> /dev/null; then
     error_exit "sudo n'est pas installé. Installez-le d'abord : apt install sudo"
 fi
 
+info "Mise à jour de la liste des paquets..."
+sudo apt update || error_exit "La mise à jour des paquets a échoué"
+
 # Vérifier et générer les locales si nécessaire
 info "Vérification des locales..."
-if ! locale -a | grep -q "fr_FR.utf8"; then
-    warn "La locale fr_FR.UTF-8 n'est pas générée"
-    info "Génération de la locale fr_FR.UTF-8..."
-    sudo locale-gen fr_FR.UTF-8 2>/dev/null || warn "Impossible de générer la locale fr_FR.UTF-8"
-    sudo update-locale LANG=fr_FR.UTF-8 2>/dev/null || warn "Impossible de mettre à jour LANG"
+if ! locale -a | grep -q "${ENV_VARS["LANG"]}"; then
+    warn "La locale ${ENV_VARS["LANG"]} n'est pas générée"
+    info "Génération de la locale ${ENV_VARS["LANG"]}..."
+    if ! which locale-gen > /dev/null 2>&1; then
+        sudo apt update && sudo apt install -y locales
+    fi
+    sudo locale-gen ${ENV_VARS["LANG"]} 2>/dev/null || warn "Impossible de générer la locale ${ENV_VARS["LANG"]}"
+    sudo update-locale LANG=${ENV_VARS["LANG"]} 2>/dev/null || warn "Impossible de mettre à jour LANG vers ${ENV_VARS["LANG"]}"
 else
-    success "Locale fr_FR.UTF-8 générée"
+    success "Locale ${ENV_VARS["LANG"]} générée"
 fi
 
 info "Utilisateur: $USER"
@@ -154,15 +159,9 @@ success "Vérifications OK"
 
 header "Installation des paquets système"
 
-info "Mise à jour de la liste des paquets..."
-sudo apt update || error_exit "La mise à jour des paquets a échoué"
-
 info "Installation des paquets obligatoires..."
 REQUIRED_STRING=$(printf "%s " "${REQUIRED_PACKAGES[@]}")
 sudo apt install -y $REQUIRED_STRING || error_exit "L'installation des paquets obligatoires a échoué"
-
-info "Génération des fichiers de langue"
-sudo locale-gen
 
 # Vérification des versions installées
 ZSH_VERSION=$(zsh --version | cut -d' ' -f2)
