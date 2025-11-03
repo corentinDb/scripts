@@ -460,6 +460,9 @@ alias fz='fzf --style full \
     --color "input-border:#996666,input-label:#ffcccc" \
     --color "header-border:#6699cc,header-label:#99ccff"'
 
+# ===== Aliases brew =====
+alias brew='sudo -H -i -u linuxbrew brew '
+
 # ===== Fonctions utiles =====
 # Backup rapide d'un fichier
 backup() {
