@@ -65,14 +65,14 @@ declare -A ENV_VARS=(
     --border-label ' Demo ' --input-label ' Input ' --header-label ' File Type ' \
     --preview 'fzf-preview.sh {}' \
     --bind 'result:transform-list-label:
-        if [[ -z \$FZF_QUERY ]]; then
-          echo \" \$FZF_MATCH_COUNT items \"
+        if [[ -z \\\$FZF_QUERY ]]; then
+          echo \\\" \\\$FZF_MATCH_COUNT items \\\"
         else
-          echo \" \$FZF_MATCH_COUNT matches for [\$FZF_QUERY] \"
+          echo \\\" \\\$FZF_MATCH_COUNT matches for [\\\$FZF_QUERY] \\\"
         fi
         ' \
-    --bind 'focus:transform-preview-label:[[ -n {} ]] && printf \" Previewing [%s] \" {}' \
-    --bind 'focus:+transform-header:file --brief {} || echo \"No file selected\"' \
+    --bind 'focus:transform-preview-label:[[ -n {} ]] && printf \\\" Previewing [%s] \\\" {}' \
+    --bind 'focus:+transform-header:file --brief {} || echo \\\"No file selected\\\"' \
     --bind 'ctrl-r:change-list-label( Reloading the list )+reload(sleep 2; git ls-files)' \
     --color 'border:#aaaaaa,label:#cccccc' \
     --color 'preview-border:#9999cc,preview-label:#ccccff' \
