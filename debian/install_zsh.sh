@@ -64,7 +64,7 @@ declare -A ENV_VARS=(
     # Print tree structure in the preview window
     [FZF_ALT_C_OPTS]="--preview 'tree -C {}'"
     # FZF default options: walker-skip common directories (inherited by other FZF options)
-    [FZF_DEFAULT_OPTS]="--walker-skip .git,node_modules,target,venv,.venv,.idea,.claude"
+    [FZF_DEFAULT_OPTS]="--walker-skip .git,node_modules,target,.idea,.claude"
 )
 
 # Paquets obligatoires
