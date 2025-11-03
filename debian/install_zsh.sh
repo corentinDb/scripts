@@ -426,6 +426,7 @@ alias mkdir='mkdir -pv'                          # Créer dossiers parents
 alias wget='wget -c'                             # Continuer téléchargements
 alias h='history'                                # Raccourcis
 alias hgrep="fc -El 0 | grep"                    # Recherche dans historique
+alias sudo='sudo '                               # Permet d'utiliser les aliases avec sudo https://askubuntu.com/a/22043
 
 # ===== Aliases bat =====
 alias bat="batcat"
