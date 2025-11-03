@@ -8,9 +8,12 @@
 # Exit on error, undefined variables, and pipe failures
 set -euo pipefail
 
+PREF_LANG=fr_FR.UTF-8
+
 # Set locale to avoid encoding issues
-export LANG=fr_FR.UTF-8
-export LANGUAGE=fr_FR.UTF-8
+export LANG=$PREF_LANG
+export LANGUAGE=$PREF_LANG
+export LC_ALL=$PREF_LANG
 
 # =============================================================================
 # CONFIGURATION
@@ -51,9 +54,9 @@ declare -A ENV_VARS=(
     [ZSH_COMPDUMP]="\$ZSH/cache/.zcompdump-\$HOST" # Fichier zcompdump
     [LESS]="-R -M -i"            # Configuration de less: -R : Affiche les couleurs ANSI (pour man coloré, git diff, etc.) | -M : Prompt détaillé (ligne X de Y, pourcentage) | -i : Recherche insensible à la casse (sauf si maj présente)
     [HIST_STAMPS]="yyyy-mm-dd"   # Format des timestamps de l'historique
-    [LANG]="fr_FR.UTF-8"         # Locale par défaut
-    [LANGUAGE]="fr_FR.UTF-8"     # Langue préférée
-    [LC_ALL]="fr_FR.UTF-8"       # Locale pour toutes les catégories (écrase les LC_*)
+    [LANG]="$PREF_LANG"         # Locale par défaut
+    [LANGUAGE]="$PREF_LANG"     # Langue préférée
+    [LC_ALL]="$PREF_LANG"       # Locale pour toutes les catégories (écrase les LC_*)
     # Preview file content using bat (https://github.com/sharkdp/bat)
     [FZF_CTRL_T_OPTS]="--preview 'batcat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'"
     # CTRL-Y to copy the command into clipboard using pbcopy
