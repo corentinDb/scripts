@@ -54,6 +54,31 @@ declare -A ENV_VARS=(
     [LANG]="fr_FR.UTF-8"         # Locale par défaut
     [LANGUAGE]="fr_FR.UTF-8"     # Langue préférée
     [LC_ALL]="fr_FR.UTF-8"       # Locale pour toutes les catégories (écrase les LC_*)
+    # Preview file content using bat (https://github.com/sharkdp/bat)
+    [FZF_CTRL_T_OPTS]="--walker-skip .git,node_modules,target,venv,.venv,.idea,.claude --preview 'bat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+    # CTRL-Y to copy the command into clipboard using pbcopy
+    [FZF_CTRL_R_OPTS]="--bind 'ctrl-y:execute-silent(echo -n {2..} | xsel --clipboard)+abort' --color header:italic --header 'Press CTRL-Y to copy command into clipboard'"
+    # Print tree structure in the preview window
+    [FZF_ALT_C_OPTS]="--walker-skip .git,node_modules,target --preview 'tree -C {}'"
+    [FZF_DEFAULT_COMMAND]="fzf --style full \
+    --border --padding 1,2 \
+    --border-label ' Demo ' --input-label ' Input ' --header-label ' File Type ' \
+    --preview 'fzf-preview.sh {}' \
+    --bind 'result:transform-list-label:
+        if [[ -z \$FZF_QUERY ]]; then
+          echo \" \$FZF_MATCH_COUNT items \"
+        else
+          echo \" \$FZF_MATCH_COUNT matches for [\$FZF_QUERY] \"
+        fi
+        ' \
+    --bind 'focus:transform-preview-label:[[ -n {} ]] && printf \" Previewing [%s] \" {}' \
+    --bind 'focus:+transform-header:file --brief {} || echo \"No file selected\"' \
+    --bind 'ctrl-r:change-list-label( Reloading the list )+reload(sleep 2; git ls-files)' \
+    --color 'border:#aaaaaa,label:#cccccc' \
+    --color 'preview-border:#9999cc,preview-label:#ccccff' \
+    --color 'list-border:#669966,list-label:#99cc99' \
+    --color 'input-border:#996666,input-label:#ffcccc' \
+    --color 'header-border:#6699cc,header-label:#99ccff'"
 )
 
 # Paquets obligatoires
@@ -65,17 +90,17 @@ REQUIRED_PACKAGES=(
 
 # Paquets Homebrew à installer
 BREW_PACKAGES=(
-    "fzf"                        # Chercheur flou interactif
+    fzf                        # Chercheur flou interactif
 )
 
-# Paquets optionnels: format "paquet:description"
-# Structure unique pour faciliter la maintenance
-declare -a OPTIONAL_PACKAGES=(
-    "btop:Moniteur de processus interactif"
-    "tree:Affiche la structure des répertoires"
-    "vim:Éditeur de texte avancé"
-    "jq:Processeur JSON en ligne de commande"
-    "bat:Cat amélioré avec coloration syntaxique"
+# Paquets optionnels
+OPTIONAL_PACKAGES=(
+    btop
+    tree
+    vim
+    jq
+    bat
+    xsel
 )
 
 # =============================================================================
@@ -163,13 +188,7 @@ success "Zsh $ZSH_VERSION installé"
 header "Paquets optionnels"
 
 info "Installation des paquets optionnels..."
-# Extraire les noms de paquets (partie avant le ':')
-OPTIONAL_NAMES=()
-for item in "${OPTIONAL_PACKAGES[@]}"; do
-    OPTIONAL_NAMES+=("${item%%:*}")
-done
-
-OPTIONAL_STRING=$(printf "%s " "${OPTIONAL_NAMES[@]}")
+OPTIONAL_STRING=$(printf "%s " "${OPTIONAL_PACKAGES[@]}")
 if sudo apt install -y $OPTIONAL_STRING 2>&1; then
     success "Paquets optionnels installés avec succès"
 else
@@ -408,6 +427,17 @@ alias mkdir='mkdir -pv'                          # Créer dossiers parents
 alias wget='wget -c'                             # Continuer téléchargements
 alias h='history'                                # Raccourcis
 alias hgrep="fc -El 0 | grep"                    # Recherche dans historique
+
+# ===== Aliases bat =====
+alias bat="batcat"
+alias bcat='bat --paging=never'
+alias bathelp='bat --plain --language=help'
+bhelp() {
+    "$@" --help 2>&1 | bathelp
+}
+batdiff() {
+    git diff --name-only --relative --diff-filter=d -z | xargs -0 bat --diff
+}
 
 # ===== Fonctions utiles =====
 # Backup rapide d'un fichier
