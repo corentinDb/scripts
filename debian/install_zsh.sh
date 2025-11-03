@@ -435,7 +435,7 @@ bhelp() {
     "$@" --help 2>&1 | bathelp
 }
 batdiff() {
-    git diff --name-only --relative --diff-filter=d -z | xargs -0 bat --diff
+    git diff --name-only --relative --diff-filter=d -z | xargs -0 batcat --diff
 }
 
 # ===== Aliases fzf =====
