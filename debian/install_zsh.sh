@@ -55,30 +55,13 @@ declare -A ENV_VARS=(
     [LANGUAGE]="fr_FR.UTF-8"     # Langue préférée
     [LC_ALL]="fr_FR.UTF-8"       # Locale pour toutes les catégories (écrase les LC_*)
     # Preview file content using bat (https://github.com/sharkdp/bat)
-    [FZF_CTRL_T_OPTS]="--walker-skip .git,node_modules,target,venv,.venv,.idea,.claude --preview 'bat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+    [FZF_CTRL_T_OPTS]="--preview 'batcat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'"
     # CTRL-Y to copy the command into clipboard using pbcopy
     [FZF_CTRL_R_OPTS]="--bind 'ctrl-y:execute-silent(echo -n {2..} | xsel --clipboard)+abort' --color header:italic --header 'Press CTRL-Y to copy command into clipboard'"
     # Print tree structure in the preview window
-    [FZF_ALT_C_OPTS]="--walker-skip .git,node_modules,target --preview 'tree -C {}'"
-    [FZF_DEFAULT_COMMAND]="fzf --style full \
-    --border --padding 1,2 \
-    --border-label ' Demo ' --input-label ' Input ' --header-label ' File Type ' \
-    --preview 'fzf-preview.sh {}' \
-    --bind 'result:transform-list-label:
-        if [[ -z \\\$FZF_QUERY ]]; then
-          echo \\\" \\\$FZF_MATCH_COUNT items \\\"
-        else
-          echo \\\" \\\$FZF_MATCH_COUNT matches for [\\\$FZF_QUERY] \\\"
-        fi
-        ' \
-    --bind 'focus:transform-preview-label:[[ -n {} ]] && printf \\\" Previewing [%s] \\\" {}' \
-    --bind 'focus:+transform-header:file --brief {} || echo \\\"No file selected\\\"' \
-    --bind 'ctrl-r:change-list-label( Reloading the list )+reload(sleep 2; git ls-files)' \
-    --color 'border:#aaaaaa,label:#cccccc' \
-    --color 'preview-border:#9999cc,preview-label:#ccccff' \
-    --color 'list-border:#669966,list-label:#99cc99' \
-    --color 'input-border:#996666,input-label:#ffcccc' \
-    --color 'header-border:#6699cc,header-label:#99ccff'"
+    [FZF_ALT_C_OPTS]="--preview 'tree -C {}'"
+    # FZF default options: walker-skip common directories (inherited by other FZF options)
+    [FZF_DEFAULT_OPTS]="--walker-skip .git,node_modules,target,venv,.venv,.idea,.claude"
 )
 
 # Paquets obligatoires
@@ -290,9 +273,17 @@ header "Installation de Oh-My-Zsh"
 # Vérifier si oh-my-zsh est déjà installé
 if [ -d "$HOME/.oh-my-zsh" ]; then
     warn "Oh-My-Zsh est déjà installé dans $HOME/.oh-my-zsh"
-    read -p "Voulez-vous réinstaller ? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
+    # Prompt for user confirmation, works both with direct execution and piped execution (curl | bash)
+    if [ -t 0 ] || [ -c /dev/tty ]; then
+        # Interactive mode: read from terminal
+        read -p "Voulez-vous réinstaller ? [y/N]: " -r response < /dev/tty || response=""
+    else
+        # Non-interactive mode: default to skipping
+        response=""
+    fi
+    # Normalize response to lowercase for comparison
+    response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
+    if [[ "$response" =~ ^(y|yes|o|oui)$ ]]; then
         info "Sauvegarde de l'ancien oh-my-zsh..."
         mv "$HOME/.oh-my-zsh" "$HOME/.oh-my-zsh.backup.$(date +%Y%m%d-%H%M%S)"
         if [ -f "$HOME/.zshrc" ]; then
@@ -438,6 +429,27 @@ bhelp() {
 batdiff() {
     git diff --name-only --relative --diff-filter=d -z | xargs -0 bat --diff
 }
+
+# ===== Aliases fzf =====
+alias fz='fzf --style full \
+    --border --padding 1,2 \
+    --border-label " Demo " --input-label " Input " --header-label " File Type " \
+    --preview "fzf-preview.sh {}" \
+    --bind "result:transform-list-label:
+        if [[ -z \$FZF_QUERY ]]; then
+          echo \" \$FZF_MATCH_COUNT items \"
+        else
+          echo \" \$FZF_MATCH_COUNT matches for [\$FZF_QUERY] \"
+        fi
+        " \
+    --bind "focus:transform-preview-label:[[ -n {} ]] && printf \" Previewing [%s] \" {}" \
+    --bind "focus:+transform-header:file --brief {} || echo \"No file selected\"" \
+    --bind "ctrl-r:change-list-label( Reloading the list )+reload(sleep 2; git ls-files)" \
+    --color "border:#aaaaaa,label:#cccccc" \
+    --color "preview-border:#9999cc,preview-label:#ccccff" \
+    --color "list-border:#669966,list-label:#99cc99" \
+    --color "input-border:#996666,input-label:#ffcccc" \
+    --color "header-border:#6699cc,header-label:#99ccff"'
 
 # ===== Fonctions utiles =====
 # Backup rapide d'un fichier
