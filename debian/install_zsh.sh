@@ -69,6 +69,7 @@ REQUIRED_PACKAGES=(
     zsh                          # Shell interactif
     curl                         # Outil de transfert de données
     git                          # Système de gestion de versions
+    locales
 )
 
 # Paquets Homebrew à installer
@@ -159,6 +160,9 @@ sudo apt update || error_exit "La mise à jour des paquets a échoué"
 info "Installation des paquets obligatoires..."
 REQUIRED_STRING=$(printf "%s " "${REQUIRED_PACKAGES[@]}")
 sudo apt install -y $REQUIRED_STRING || error_exit "L'installation des paquets obligatoires a échoué"
+
+info "Génération des fichiers de langue"
+sudo locale-gen
 
 # Vérification des versions installées
 ZSH_VERSION=$(zsh --version | cut -d' ' -f2)
