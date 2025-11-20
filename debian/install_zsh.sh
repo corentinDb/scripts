@@ -228,28 +228,6 @@ else
     fi
 fi
 
-# Configuration de Homebrew dans .zshrc pour tous les cas (déjà installé ou nouvellement installé)
-if [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
-    info "Configuration de Homebrew dans .zshrc..."
-    # Créer le bloc Homebrew avec headers
-    {
-        echo "# BEGIN INSTALL_ZSH_SCRIPT_HOMEBREW"
-        echo ""
-        echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
-        echo ""
-        echo "# END INSTALL_ZSH_SCRIPT_HOMEBREW"
-    } > /tmp/homebrew_config.txt
-
-    # Supprimer l'ancien bloc s'il existe (éviter les doublons)
-    sed -i '/# BEGIN INSTALL_ZSH_SCRIPT_HOMEBREW/,/# END INSTALL_ZSH_SCRIPT_HOMEBREW/d' "$HOME/.zshrc" 2>/dev/null || true
-
-    # Insérer le bloc avant la ligne source $ZSH/oh-my-zsh.sh
-    awk '/source \$ZSH\/oh-my-zsh.sh/ {system("cat /tmp/homebrew_config.txt"); print; next} {print}' "$HOME/.zshrc" > /tmp/.zshrc.tmp && mv /tmp/.zshrc.tmp "$HOME/.zshrc" && rm /tmp/homebrew_config.txt || error_exit "Échec de l'ajout de la configuration Homebrew"
-
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-    success "Configuration Homebrew ajoutée à .zshrc"
-fi
-
 # =============================================================================
 # INSTALLATION DES PACKAGES HOMEBREW
 # =============================================================================
@@ -321,6 +299,28 @@ header "Configuration de Zsh"
 # Vérifier que .zshrc existe
 if [ ! -f "$HOME/.zshrc" ]; then
     error_exit "Le fichier .zshrc n'existe pas. L'installation de oh-my-zsh a peut-être échoué."
+fi
+
+# Configuration de Homebrew dans .zshrc pour tous les cas (déjà installé ou nouvellement installé)
+if [ -x "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+    info "Configuration de Homebrew dans .zshrc..."
+    # Créer le bloc Homebrew avec headers
+    {
+        echo "# BEGIN INSTALL_ZSH_SCRIPT_HOMEBREW"
+        echo ""
+        echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"'
+        echo ""
+        echo "# END INSTALL_ZSH_SCRIPT_HOMEBREW"
+    } > /tmp/homebrew_config.txt
+
+    # Supprimer l'ancien bloc s'il existe (éviter les doublons)
+    sed -i '/# BEGIN INSTALL_ZSH_SCRIPT_HOMEBREW/,/# END INSTALL_ZSH_SCRIPT_HOMEBREW/d' "$HOME/.zshrc" 2>/dev/null || true
+
+    # Insérer le bloc avant la ligne source $ZSH/oh-my-zsh.sh
+    awk '/source \$ZSH\/oh-my-zsh.sh/ {system("cat /tmp/homebrew_config.txt"); print; next} {print}' "$HOME/.zshrc" > /tmp/.zshrc.tmp && mv /tmp/.zshrc.tmp "$HOME/.zshrc" && rm /tmp/homebrew_config.txt || error_exit "Échec de l'ajout de la configuration Homebrew"
+
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    success "Configuration Homebrew ajoutée à .zshrc"
 fi
 
 # Configuration du thème
