@@ -33,7 +33,6 @@ ZSH_THEME="candy"
 # Plugins oh-my-zsh
 ZSH_PLUGINS=(
     sudo                         # Appuyer 2x ESC pour ajouter sudo
-    command-not-found            # Suggère le paquet à installer
     colored-man-pages            # Pages man colorées
     history-substring-search     # Recherche dans l'historique
     extract                      # Extraction facile d'archives (commande: extract <file>)
@@ -461,13 +460,63 @@ alias fz='fzf --style full \
     --color "header-border:#6699cc,header-label:#99ccff"'
 
 # ===== Aliases brew =====
-alias brew='sudo -H -i -u linuxbrew brew '
+alias sbrew='sudo -H -i -u linuxbrew brew '
 
 # ===== Fonctions utiles =====
 # Backup rapide d'un fichier
 backup() {
     cp "$1"{,.backup-$(date +%Y%m%d-%H%M%S)}
 }
+
+# Fonction pour rechercher une commande
+search-cmd() {
+    local cmd="$1"
+
+    if [ -z "$cmd" ]; then
+        echo "Usage: search-cmd <command_name>"
+        return 1
+    fi
+
+    echo "=== Searching in zsh commands ==="
+    if command -v "$cmd" &> /dev/null; then
+        echo "  Found: $(which "$cmd")"
+        echo "  Type: $(type "$cmd")"
+    else
+        echo "  Not found"
+    fi
+
+    echo "\n=== Searching in APT ==="
+    local apt_results=$(apt-cache search "^$cmd$" 2>/dev/null)
+    if [ -n "$apt_results" ]; then
+        echo "  Found: sudo apt install $cmd"
+        apt-cache show "$cmd" 2>/dev/null | grep -E "^(Package|Description):" | head -2
+    else
+        local apt_similar=$(apt-cache search "$cmd" 2>/dev/null | head -5)
+        if [ -n "$apt_similar" ]; then
+            echo "  Similar packages:"
+            echo "$apt_similar" | sed 's/^/    /'
+        else
+            echo "  Not found"
+        fi
+    fi
+
+    echo "\n=== Searching in Homebrew ==="
+    local brew_results=$(brew search "^$cmd$" 2>/dev/null)
+    if echo "$brew_results" | grep -q "^$cmd$"; then
+        echo "  Found: brew install $cmd"
+        brew info "$cmd" 2>/dev/null | head -3
+    else
+        local brew_similar=$(brew search "$cmd" 2>/dev/null | head -5)
+        if [ -n "$brew_similar" ]; then
+            echo "  Similar formulae:"
+            echo "$brew_similar" | sed 's/^/    /'
+        else
+            echo "  Not found"
+        fi
+    fi
+}
+
+alias sc='search-cmd'
 
 # END INSTALL_ZSH_SCRIPT_CUSTOM_CONFIG
 EOF
