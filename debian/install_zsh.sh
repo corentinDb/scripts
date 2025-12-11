@@ -481,6 +481,14 @@ search-cmd() {
     if command -v "$cmd" &> /dev/null; then
         echo "  Found: $(which "$cmd")"
         echo "  Type: $(type "$cmd")"
+        # Tenter d'obtenir la version
+        if "$cmd" --version &> /dev/null; then
+            local version=$("$cmd" --version 2>&1 | head -1)
+            echo "  Version: $version"
+        elif "$cmd" -v &> /dev/null; then
+            local version=$("$cmd" -v 2>&1 | head -1)
+            echo "  Version: $version"
+        fi
     else
         echo "  Not found"
     fi
@@ -489,7 +497,11 @@ search-cmd() {
     local apt_results=$(apt-cache search "^$cmd$" 2>/dev/null)
     if [ -n "$apt_results" ]; then
         echo "  Found: sudo apt install $cmd"
-        apt-cache show "$cmd" 2>/dev/null | grep -E "^(Package|Description):" | head -2
+        local version=$(apt-cache show "$cmd" 2>/dev/null | grep -m1 "^Version:" | awk '{print $2}')
+        if [ -n "$version" ]; then
+            echo "  Version: $version"
+        fi
+        apt-cache show "$cmd" 2>/dev/null | grep -E "^Description:" | head -1
     else
         local apt_similar=$(apt-cache search "$cmd" 2>/dev/null | head -5)
         if [ -n "$apt_similar" ]; then
@@ -501,18 +513,28 @@ search-cmd() {
     fi
 
     echo "\n=== Searching in Homebrew ==="
-    local brew_results=$(brew search "^$cmd$" 2>/dev/null)
-    if echo "$brew_results" | grep -q "^$cmd$"; then
-        echo "  Found: brew install $cmd"
-        brew info "$cmd" 2>/dev/null | head -3
-    else
-        local brew_similar=$(brew search "$cmd" 2>/dev/null | head -5)
-        if [ -n "$brew_similar" ]; then
-            echo "  Similar formulae:"
-            echo "$brew_similar" | sed 's/^/    /'
+    if command -v brew &> /dev/null; then
+        local brew_results=$(brew search "^$cmd$" 2>/dev/null)
+        if echo "$brew_results" | grep -q "^$cmd$"; then
+            echo "  Found: brew install $cmd"
+            local brew_info=$(brew info "$cmd" 2>/dev/null)
+            # Extraire la version depuis la première ligne qui contient "stable"
+            local version=$(echo "$brew_info" | grep -m1 "^==>" | sed -E 's/^==> [^:]+: stable ([0-9.]+).*/\1/')
+            if [ -n "$version" ]; then
+                echo "  Version: $version"
+            fi
+            echo "$brew_info" | grep -m1 "^[A-Z]" | grep -v "^==>"
         else
-            echo "  Not found"
+            local brew_similar=$(brew search "$cmd" 2>/dev/null | head -5)
+            if [ -n "$brew_similar" ]; then
+                echo "  Similar formulae:"
+                echo "$brew_similar" | sed 's/^/    /'
+            else
+                echo "  Not found"
+            fi
         fi
+    else
+        echo "  Homebrew not installed"
     fi
 }
 
