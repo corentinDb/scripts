@@ -148,9 +148,9 @@ if ! locale -a | grep -q "${ENV_VARS["LANG"]}"; then
     sudo sed -i "s/^# *\(${ENV_VARS["LANG"]} UTF-8\)/\1/" /etc/locale.gen
     sudo locale-gen 2>/dev/null || warn "Impossible de générer la locale ${ENV_VARS["LANG"]}"
     sudo update-locale LANG=${ENV_VARS["LANG"]} 2>/dev/null || warn "Impossible de mettre à jour LANG vers ${ENV_VARS["LANG"]}"
-    success "Locale ${ENV_VARS["LANG"]} déjà générée"
+    success "Locale ${ENV_VARS["LANG"]} générée"
 else
-    success "Locale ${ENV_VARS["LANG"]} déjà présente générée"
+    success "Locale ${ENV_VARS["LANG"]} déjà présente"
 fi
 
 info "Utilisateur: $USER"
