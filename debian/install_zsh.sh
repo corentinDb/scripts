@@ -414,7 +414,7 @@ alias ff='find . -type f -name'
 # ===== Aliases adminsys =====
 alias dud='du -d 1 -h'
 (( $+commands[duf] )) || alias duf='du -sh *'
-alias rm='rm -i'
+alias rm='rm -I'
 alias cp='cp -i'
 alias mv='mv -i'
 
