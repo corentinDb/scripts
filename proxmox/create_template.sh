@@ -59,7 +59,7 @@ virt-customize \
 
 qm create "$VM_ID" --name "$VM_NAME" --memory "$RAM" --cores "$CPU" --net0 virtio,bridge=${BRIDGE} --cpu "x86-64-v2-AES" --scsihw virtio-scsi-pci --boot c --bootdisk scsi0
 
-qm importdisk "$TEMPLATE_VMID" "$IMAGE_PATH" "$STORAGE"
+qm importdisk "$VM_ID" "$IMAGE_PATH" "$STORAGE"
 
 qm set "$VM_ID" --scsi0 "${STORAGE}:vm-${VM_ID}-disk-0" --ide2 local-lvm:cloudinit --agent enabled=1 --ipconfig0 dhcp
 
