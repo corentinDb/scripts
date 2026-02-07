@@ -61,7 +61,7 @@ qm create "$VM_ID" --name "$VM_NAME" --memory "$RAM" --cores "$CPU" --net0 virti
 
 qm importdisk "$VM_ID" "$IMAGE_PATH" "$STORAGE"
 
-qm set "$VM_ID" --scsi0 "${STORAGE}:vm-${VM_ID}-disk-0" --ide2 local-lvm:cloudinit --agent enabled=1 --ipconfig0 dhcp
+qm set "$VM_ID" --scsi0 "${STORAGE}:vm-${VM_ID}-disk-0" --ide2 local-lvm:cloudinit --agent enabled=1 --ipconfig0 ip=dhcp
 
 qm disk resize "$VM_ID" scsi0 "${DISK_SIZE}G"
 
