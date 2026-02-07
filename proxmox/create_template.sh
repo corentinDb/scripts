@@ -38,7 +38,7 @@ VM_NAME="debian-${DEBIAN_VERSION}-cloud-template"
 CPU=2
 RAM=4096
 BRIDGE="vmbr0"
-DISK_SIZE=40 # En Go
+DISK_SIZE=5 # En Go
 
 
 if qm list | grep -q " $VM_ID "; then
