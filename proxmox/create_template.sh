@@ -17,17 +17,12 @@ source "$TEMP_DIR/utils.sh"
 header "Vérifications préliminaires"
 
 # Vérifier qu'on n'est pas root
-if [ "$EUID" -eq 0 ]; then
-    error_exit "Ne pas exécuter ce script en tant que root. Utilisez un utilisateur normal avec sudo."
-fi
-
-# Vérifier que sudo est disponible
-if ! command -v sudo &> /dev/null; then
-    error_exit "sudo n'est pas installé. Installez-le d'abord : apt install sudo"
+if [ "$EUID" -ne 0 ]; then
+    error_exit "Exécuter ce script en tant que root ou sudo."
 fi
 
 header "Mise à jour de la liste des paquets..."
-sudo apt update || error_exit "La mise à jour des paquets a échoué"
+apt update || error_exit "La mise à jour des paquets a échoué"
 
 TMP_DIR=$(mktemp -d)
 DEBIAN_VERSION=13
