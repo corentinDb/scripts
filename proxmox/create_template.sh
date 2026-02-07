@@ -1,49 +1,18 @@
 #!/bin/bash
 
-# Exit on error, undefined variables, and pipe failures
-set -euo pipefail
-
 # =============================================================================
-# CONFIGURATION
+# LOAD utils.sh
 # =============================================================================
 
-# Couleurs pour l'affichage
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+TEMP_DIR=$(mktemp -d)
 
-# =============================================================================
-# FONCTIONS
-# =============================================================================
-
-# Affichage des messages
-error_exit() {
-    echo -e "${RED}❌ Erreur: $1${NC}" >&2
+# Charger les fonctions et configurations communes
+echo "Téléchargement des utilitaires..."
+curl -fsSL "https://dlbgd.fr/scripts/utils.sh" -o "$TEMP_DIR/utils.sh" || {
+    echo "Erreur: Impossible de télécharger utils.sh"
     exit 1
 }
-
-info() {
-    echo -e "${GREEN}➜${NC} $1"
-}
-
-warn() {
-    echo -e "${YELLOW}⚠${NC} $1"
-}
-
-success() {
-    echo -e "${CYAN}✅ $1${NC}"
-}
-
-header() {
-    echo ""
-    echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
-    echo -e "${BLUE}  $1${NC}"
-    echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
-    echo ""
-}
+source "$TEMP_DIR/utils.sh"
 
 header "Vérifications préliminaires"
 
@@ -93,10 +62,12 @@ virt-customize \
     --run-command 'truncate -s 0 /etc/machine-id && rm -f /var/lib/dbus/machine-id && ln -s /etc/machine-id /var/lib/dbus/machine-id' \
     --run-command 'rm -f /root/.bash_history'
 
-qm create $VM_ID --name $VM_NAME --memory ${RAM} --cores ${CPU} --net0 virtio,bridge=${BRIDGE} --cpu "x86-64-v2-AES" --scsihw virtio-scsi-pci --boot c --bootdisk scsi0
+qm create "$VM_ID" --name "$VM_NAME" --memory "$RAM" --cores "$CPU" --net0 virtio,bridge=${BRIDGE} --cpu "x86-64-v2-AES" --scsihw virtio-scsi-pci --boot c --bootdisk scsi0
 
 qm importdisk "$TEMPLATE_VMID" "$IMAGE_PATH" "$STORAGE"
 
-qm set $VM_ID --scsi0 "${STORAGE}:vm-${VM_ID}-disk-0" --ide2 local-lvm:cloudinit --agent enabled=1 --ipconfig0 dhcp
+qm set "$VM_ID" --scsi0 "${STORAGE}:vm-${VM_ID}-disk-0" --ide2 local-lvm:cloudinit --agent enabled=1 --ipconfig0 dhcp
 
-qm disk resize $VM_ID scsi0 "${DISK_SIZE}G"
+qm disk resize "$VM_ID" scsi0 "${DISK_SIZE}G"
+
+qm template "$VM_ID"
