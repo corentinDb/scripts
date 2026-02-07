@@ -66,3 +66,5 @@ qm set "$VM_ID" --scsi0 "${STORAGE}:vm-${VM_ID}-disk-0" --ide2 local-lvm:cloudin
 qm disk resize "$VM_ID" scsi0 "${DISK_SIZE}G"
 
 qm template "$VM_ID"
+
+rm -rf "$TMP_DIR"
