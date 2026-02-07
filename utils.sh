@@ -14,6 +14,7 @@ set -euo pipefail
 
 # Locale par défaut
 PREF_LANG="fr_FR.UTF-8"
+
 export LANG=$PREF_LANG
 export LANGUAGE=$PREF_LANG
 export LC_ALL=$PREF_LANG
