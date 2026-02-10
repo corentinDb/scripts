@@ -24,6 +24,8 @@ fi
 header "Mise à jour de la liste des paquets..."
 apt update || error_exit "La mise à jour des paquets a échoué"
 
+apt install libguestfs-tools || error_exit "L'installation de libguestfs-tools a échoué"
+
 TMP_DIR=$(mktemp -d)
 DEBIAN_VERSION=13
 DEBIAN_NAME="trixie"
