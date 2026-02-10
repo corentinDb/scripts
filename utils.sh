@@ -12,6 +12,8 @@ set -euo pipefail
 # CONFIGURATION COMMUNE
 # =============================================================================
 
+PREF_LANG="fr_FR.UTF-8"
+
 # Couleurs pour l'affichage
 RED='\033[0;31m'
 GREEN='\033[0;32m'
