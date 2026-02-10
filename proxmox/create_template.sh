@@ -18,7 +18,7 @@ header "Vérifications préliminaires"
 
 # Vérifier qu'on n'est pas root
 if [ "$EUID" -ne 0 ]; then
-    error_exit "Exécuter ce script en tant que root ou sudo."
+    error_exit "Exécuter ce script en tant que root ou sudo !"
 fi
 
 header "Mise à jour de la liste des paquets..."
